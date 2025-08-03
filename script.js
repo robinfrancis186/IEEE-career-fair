@@ -362,7 +362,9 @@ class JobMatchingSystem {
 
     destroyCharts() {
         try {
-            // Destroy existing charts
+            console.log('Destroying existing charts...');
+            
+            // Destroy our tracked charts
             if (this.charts.candidates) {
                 this.charts.candidates.destroy();
                 this.charts.candidates = null;
@@ -372,12 +374,35 @@ class JobMatchingSystem {
                 this.charts.match = null;
             }
             
-            // Clear any existing Chart.js instances
-            Chart.helpers.each(Chart.instances, function(instance) {
-                instance.destroy();
-            });
+            // Destroy ALL Chart.js instances
+            if (typeof Chart !== 'undefined') {
+                Chart.helpers.each(Chart.instances, function(instance) {
+                    try {
+                        instance.destroy();
+                    } catch (e) {
+                        console.warn('Error destroying chart instance:', e);
+                    }
+                });
+                
+                // Clear the instances array
+                Chart.instances = [];
+            }
             
-            console.log('Existing charts destroyed');
+            // Clear the canvas elements
+            const candidatesCanvas = document.getElementById('candidatesChart');
+            const matchCanvas = document.getElementById('matchChart');
+            
+            if (candidatesCanvas) {
+                const ctx = candidatesCanvas.getContext('2d');
+                ctx.clearRect(0, 0, candidatesCanvas.width, candidatesCanvas.height);
+            }
+            
+            if (matchCanvas) {
+                const ctx = matchCanvas.getContext('2d');
+                ctx.clearRect(0, 0, matchCanvas.width, matchCanvas.height);
+            }
+            
+            console.log('All charts and canvases cleared');
         } catch (error) {
             console.warn('Error destroying charts:', error);
         }
@@ -399,7 +424,46 @@ class JobMatchingSystem {
         // Destroy existing charts
         this.destroyCharts();
         
+        // Recreate canvas elements if needed
+        this.recreateCanvasElements();
+        
         console.log('Results reset');
+    }
+
+    recreateCanvasElements() {
+        try {
+            // Remove existing canvas elements
+            const candidatesChartContainer = document.querySelector('#chartsSection .col-md-6:first-child .card-body');
+            const matchChartContainer = document.querySelector('#chartsSection .col-md-6:last-child .card-body');
+            
+            if (candidatesChartContainer) {
+                const existingCanvas = candidatesChartContainer.querySelector('canvas');
+                if (existingCanvas) {
+                    existingCanvas.remove();
+                }
+                
+                // Create new canvas
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = 'candidatesChart';
+                candidatesChartContainer.appendChild(newCanvas);
+            }
+            
+            if (matchChartContainer) {
+                const existingCanvas = matchChartContainer.querySelector('canvas');
+                if (existingCanvas) {
+                    existingCanvas.remove();
+                }
+                
+                // Create new canvas
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = 'matchChart';
+                matchChartContainer.appendChild(newCanvas);
+            }
+            
+            console.log('Canvas elements recreated');
+        } catch (error) {
+            console.warn('Error recreating canvas elements:', error);
+        }
     }
 
     displaySummaryCards() {
@@ -425,61 +489,85 @@ class JobMatchingSystem {
             // Destroy existing charts first
             this.destroyCharts();
             
-            // Candidates per Company Chart
-            const candidatesCtx = document.getElementById('candidatesChart').getContext('2d');
-            this.charts.candidates = new Chart(candidatesCtx, {
-                type: 'bar',
-                data: {
-                    labels: this.results.map(r => r.companyName),
-                    datasets: [{
-                        label: 'Eligible Candidates',
-                        data: this.results.map(r => r.candidatesCount),
-                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Match Percentages Chart
-            const matchCtx = document.getElementById('matchChart').getContext('2d');
-            this.charts.match = new Chart(matchCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: this.results.map(r => r.companyName),
-                    datasets: [{
-                        data: this.results.map(r => r.topCandidateMatch),
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-                            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
+            // Wait a bit for cleanup to complete
+            setTimeout(() => {
+                this.createCharts();
+            }, 100);
             
-            console.log('Charts displayed successfully');
         } catch (error) {
-            console.error('Error displaying charts:', error);
+            console.error('Error in displayCharts:', error);
             document.getElementById('chartsSection').innerHTML = 
                 `<div class="alert alert-danger">Error displaying charts: ${error.message}</div>`;
+        }
+    }
+
+    createCharts() {
+        try {
+            console.log('Creating new charts...');
+            
+            // Candidates per Company Chart
+            const candidatesCanvas = document.getElementById('candidatesChart');
+            if (candidatesCanvas) {
+                const candidatesCtx = candidatesCanvas.getContext('2d');
+                this.charts.candidates = new Chart(candidatesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: this.results.map(r => r.companyName),
+                        datasets: [{
+                            label: 'Eligible Candidates',
+                            data: this.results.map(r => r.candidatesCount),
+                            backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                console.log('Candidates chart created');
+            }
+
+            // Match Percentages Chart
+            const matchCanvas = document.getElementById('matchChart');
+            if (matchCanvas) {
+                const matchCtx = matchCanvas.getContext('2d');
+                this.charts.match = new Chart(matchCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: this.results.map(r => r.companyName),
+                        datasets: [{
+                            data: this.results.map(r => r.topCandidateMatch),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                console.log('Match chart created');
+            }
+            
+            console.log('All charts created successfully');
+        } catch (error) {
+            console.error('Error creating charts:', error);
+            document.getElementById('chartsSection').innerHTML = 
+                `<div class="alert alert-danger">Error creating charts: ${error.message}</div>`;
         }
     }
 
