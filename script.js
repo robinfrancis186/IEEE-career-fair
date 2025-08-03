@@ -12,26 +12,59 @@ class JobMatchingSystem {
 
     initializeEventListeners() {
         try {
+            console.log('Initializing event listeners...');
+            
             // File upload listeners
             const companiesFile = document.getElementById('companiesFile');
             const candidatesFile = document.getElementById('candidatesFile');
             const processBtn = document.getElementById('processBtn');
             const exportBtn = document.getElementById('exportBtn');
             
+            console.log('Found elements:', {
+                companiesFile: !!companiesFile,
+                candidatesFile: !!candidatesFile,
+                processBtn: !!processBtn,
+                exportBtn: !!exportBtn
+            });
+            
             if (companiesFile) {
-                companiesFile.addEventListener('change', (e) => this.handleFileUpload(e, 'companies'));
+                companiesFile.addEventListener('change', (e) => {
+                    console.log('Companies file selected:', e.target.files[0]?.name);
+                    this.handleFileUpload(e, 'companies');
+                });
+                console.log('Companies file listener attached');
+            } else {
+                console.error('Companies file input not found');
             }
             
             if (candidatesFile) {
-                candidatesFile.addEventListener('change', (e) => this.handleFileUpload(e, 'candidates'));
+                candidatesFile.addEventListener('change', (e) => {
+                    console.log('Candidates file selected:', e.target.files[0]?.name);
+                    this.handleFileUpload(e, 'candidates');
+                });
+                console.log('Candidates file listener attached');
+            } else {
+                console.error('Candidates file input not found');
             }
             
             if (processBtn) {
-                processBtn.addEventListener('click', () => this.processMatching());
+                processBtn.addEventListener('click', () => {
+                    console.log('Process button clicked');
+                    this.processMatching();
+                });
+                console.log('Process button listener attached');
+            } else {
+                console.error('Process button not found');
             }
             
             if (exportBtn) {
-                exportBtn.addEventListener('click', () => this.exportResults());
+                exportBtn.addEventListener('click', () => {
+                    console.log('Export button clicked');
+                    this.exportResults();
+                });
+                console.log('Export button listener attached');
+            } else {
+                console.error('Export button not found');
             }
             
             // Smooth scrolling for navigation
@@ -496,7 +529,7 @@ class JobMatchingSystem {
 document.addEventListener('DOMContentLoaded', function() {
     try {
         console.log('DOM loaded, initializing JobMatchingSystem...');
-        new JobMatchingSystem();
+        window.jobMatchingSystem = new JobMatchingSystem();
         console.log('JobMatchingSystem initialized successfully');
         
         // Add some interactive features

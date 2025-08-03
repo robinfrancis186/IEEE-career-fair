@@ -91,7 +91,7 @@
                                     <h5 class="card-title">Companies Data</h5>
                                     <p class="card-text">Upload Excel file with company job requirements</p>
                                     <div class="mb-3">
-                                        <input type="file" class="form-control" id="companiesFile" accept=".xlsx,.xls">
+                                        <input type="file" class="form-control" id="companiesFile" accept=".xlsx,.xls" onchange="window.jobMatchingSystem && window.jobMatchingSystem.handleFileUpload(event, 'companies')">
                                     </div>
                                     <div id="companiesPreview" class="mt-3"></div>
                                 </div>
@@ -108,7 +108,7 @@
                                     <h5 class="card-title">Candidates Data</h5>
                                     <p class="card-text">Upload Excel file with candidate information</p>
                                     <div class="mb-3">
-                                        <input type="file" class="form-control" id="candidatesFile" accept=".xlsx,.xls">
+                                        <input type="file" class="form-control" id="candidatesFile" accept=".xlsx,.xls" onchange="window.jobMatchingSystem && window.jobMatchingSystem.handleFileUpload(event, 'candidates')">
                                     </div>
                                     <div id="candidatesPreview" class="mt-3"></div>
                                 </div>
@@ -118,7 +118,7 @@
 
                     <!-- Process Button -->
                     <div class="text-center mt-5">
-                        <button id="processBtn" class="btn btn-primary btn-lg" disabled>
+                        <button id="processBtn" class="btn btn-primary btn-lg" disabled onclick="window.jobMatchingSystem && window.jobMatchingSystem.processMatching()">
                             <i class="fas fa-cogs me-2"></i>Process Matching
                         </button>
                     </div>
