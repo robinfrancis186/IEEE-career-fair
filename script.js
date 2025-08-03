@@ -11,29 +11,47 @@ class JobMatchingSystem {
     }
 
     initializeEventListeners() {
-        // File upload listeners
-        document.getElementById('companiesFile').addEventListener('change', (e) => this.handleFileUpload(e, 'companies'));
-        document.getElementById('candidatesFile').addEventListener('change', (e) => this.handleFileUpload(e, 'candidates'));
-        
-        // Process button
-        document.getElementById('processBtn').addEventListener('click', () => this.processMatching());
-        
-        // Export button
-        document.getElementById('exportBtn').addEventListener('click', () => this.exportResults());
-        
-        // Smooth scrolling for navigation
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+        try {
+            // File upload listeners
+            const companiesFile = document.getElementById('companiesFile');
+            const candidatesFile = document.getElementById('candidatesFile');
+            const processBtn = document.getElementById('processBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            if (companiesFile) {
+                companiesFile.addEventListener('change', (e) => this.handleFileUpload(e, 'companies'));
+            }
+            
+            if (candidatesFile) {
+                candidatesFile.addEventListener('change', (e) => this.handleFileUpload(e, 'candidates'));
+            }
+            
+            if (processBtn) {
+                processBtn.addEventListener('click', () => this.processMatching());
+            }
+            
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => this.exportResults());
+            }
+            
+            // Smooth scrolling for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
             });
-        });
+            
+            console.log('Event listeners initialized successfully');
+        } catch (error) {
+            console.error('Error initializing event listeners:', error);
+        }
     }
 
     async handleFileUpload(event, type) {
@@ -306,55 +324,71 @@ class JobMatchingSystem {
     }
 
     displayCharts() {
-        // Candidates per Company Chart
-        const candidatesCtx = document.getElementById('candidatesChart').getContext('2d');
-        this.charts.candidates = new Chart(candidatesCtx, {
-            type: 'bar',
-            data: {
-                labels: this.results.map(r => r.companyName),
-                datasets: [{
-                    label: 'Eligible Candidates',
-                    data: this.results.map(r => r.candidatesCount),
-                    backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                    borderColor: 'rgba(13, 110, 253, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        try {
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not available, skipping charts');
+                document.getElementById('chartsSection').innerHTML = 
+                    '<div class="alert alert-warning">Charts not available. Please check your internet connection.</div>';
+                return;
+            }
+            
+            // Candidates per Company Chart
+            const candidatesCtx = document.getElementById('candidatesChart').getContext('2d');
+            this.charts.candidates = new Chart(candidatesCtx, {
+                type: 'bar',
+                data: {
+                    labels: this.results.map(r => r.companyName),
+                    datasets: [{
+                        label: 'Eligible Candidates',
+                        data: this.results.map(r => r.candidatesCount),
+                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // Match Percentages Chart
-        const matchCtx = document.getElementById('matchChart').getContext('2d');
-        this.charts.match = new Chart(matchCtx, {
-            type: 'doughnut',
-            data: {
-                labels: this.results.map(r => r.companyName),
-                datasets: [{
-                    data: this.results.map(r => r.topCandidateMatch),
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+            // Match Percentages Chart
+            const matchCtx = document.getElementById('matchChart').getContext('2d');
+            this.charts.match = new Chart(matchCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: this.results.map(r => r.companyName),
+                    datasets: [{
+                        data: this.results.map(r => r.topCandidateMatch),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
                     }
                 }
-            }
-        });
+            });
+            
+            console.log('Charts displayed successfully');
+        } catch (error) {
+            console.error('Error displaying charts:', error);
+            document.getElementById('chartsSection').innerHTML = 
+                `<div class="alert alert-danger">Error displaying charts: ${error.message}</div>`;
+        }
     }
 
     displayResultsTable() {
@@ -449,29 +483,49 @@ class JobMatchingSystem {
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    new JobMatchingSystem();
-    
-    // Add some interactive features
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Add scroll animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
+    try {
+        console.log('DOM loaded, initializing JobMatchingSystem...');
+        new JobMatchingSystem();
+        console.log('JobMatchingSystem initialized successfully');
+        
+        // Add some interactive features
+        try {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        } catch (error) {
+            console.warn('Bootstrap tooltips not available:', error);
+        }
+        
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.card, .summary-card').forEach(el => {
+            observer.observe(el);
         });
-    }, observerOptions);
-    
-    document.querySelectorAll('.card, .summary-card').forEach(el => {
-        observer.observe(el);
-    });
+        
+        console.log('Application fully initialized');
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        // Show error message to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger';
+        errorDiv.innerHTML = `
+            <strong>Error loading application:</strong> ${error.message}<br>
+            Please refresh the page or check the console for more details.
+        `;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
+    }
 }); 
