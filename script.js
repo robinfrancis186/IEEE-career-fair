@@ -104,6 +104,9 @@ class JobMatchingSystem {
             this.updateUploadCard(type, true);
             this.checkProcessButton();
             
+            // Reset results when new files are uploaded
+            this.resetResults();
+            
         } catch (error) {
             this.showAlert(`Error reading ${type} file: ${error.message}`, 'danger');
         }
@@ -357,6 +360,48 @@ class JobMatchingSystem {
         document.getElementById('resultsTable').style.display = 'block';
     }
 
+    destroyCharts() {
+        try {
+            // Destroy existing charts
+            if (this.charts.candidates) {
+                this.charts.candidates.destroy();
+                this.charts.candidates = null;
+            }
+            if (this.charts.match) {
+                this.charts.match.destroy();
+                this.charts.match = null;
+            }
+            
+            // Clear any existing Chart.js instances
+            Chart.helpers.each(Chart.instances, function(instance) {
+                instance.destroy();
+            });
+            
+            console.log('Existing charts destroyed');
+        } catch (error) {
+            console.warn('Error destroying charts:', error);
+        }
+    }
+
+    resetResults() {
+        // Clear previous results
+        this.results = [];
+        
+        // Hide results sections
+        const summaryCards = document.getElementById('summaryCards');
+        const chartsSection = document.getElementById('chartsSection');
+        const resultsTable = document.getElementById('resultsTable');
+        
+        if (summaryCards) summaryCards.style.display = 'none';
+        if (chartsSection) chartsSection.style.display = 'none';
+        if (resultsTable) resultsTable.style.display = 'none';
+        
+        // Destroy existing charts
+        this.destroyCharts();
+        
+        console.log('Results reset');
+    }
+
     displaySummaryCards() {
         const totalCompanies = this.results.length;
         const totalCandidates = this.results.reduce((sum, result) => sum + result.candidatesCount, 0);
@@ -376,6 +421,9 @@ class JobMatchingSystem {
                     '<div class="alert alert-warning">Charts not available. Please check your internet connection.</div>';
                 return;
             }
+            
+            // Destroy existing charts first
+            this.destroyCharts();
             
             // Candidates per Company Chart
             const candidatesCtx = document.getElementById('candidatesChart').getContext('2d');
